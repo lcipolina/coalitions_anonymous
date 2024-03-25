@@ -58,13 +58,7 @@ class CharacteristicFunction:
             agents_in_coalition = frozenset([i for i, x in enumerate(coalition) if x == 1])
             return self.partition_values.get(agents_in_coalition, 0)
         elif self.mode == 'ridesharing':
-            # V(S, d, alpha) = k * sum(d) - alpha * |S|^2 #cost function: we want: more people, less cost (and reward is changed to -cost)
-            #return self.k * np.sum(distances) - (self.alpha * np.sum(coalition)**2)
-            #print('coalition:',coalition)
-            #print('distances before:', distances)
             distances = [x for x in distances if x != 0]
-            #print('distances later:', distances)
-    
             if len(distances) == 1:
                 return distance
             else:
@@ -187,27 +181,8 @@ class Env(MultiAgentEnv):
                 'coalitions': np.zeros((2, self.num_agents), dtype=int),
                 'distances': np.zeros((2, self.num_agents), dtype=float)
                  }
-        ''''
-        # Check if there's only one coalition left for the current agent - make sure is not the same as it current
-        if len(self.valid_coalitions[self.current_agent]) == 1: #EXPERIMENTAL
-            # If the last coalition is the same as the current coalition, represent it as an empty coalition and the coalition that's left
-            if np.array_equal(self.valid_coalitions[self.current_agent][0], self.current_coalitions[self.current_agent]):
-               self.new_coalition = self.valid_coalitions[self.current_agent][0]
-               # delete the coalition from the list of valid coalitions for the current agent
-               self.valid_coalitions[self.current_agent] = [coal for coal in self.valid_coalitions[self.current_agent] if not np.array_equal(coal, self.new_coalition)]
-               return {
-            'coalitions': np.vstack([np.zeros(self.num_agents, dtype=int), self.valid_coalitions[self.current_agent][0]]),
-            'distances': np.vstack([self.distance_lst * np.zeros(self.num_agents, dtype=int), self.distance_lst * self.valid_coalitions[self.current_agent][0]])
-        }
-        '''
+
         # Generate a new coalition proposal - avoid proposing the current coalition and the empty coalition
-        '''
-        while True:
-            coalition_id       = np.random.choice(len(self.valid_coalitions[self.current_agent])) #avoid proposing the current coalition
-            self.new_coalition = self.valid_coalitions[self.current_agent][coalition_id]
-            if not np.array_equal(self.new_coalition, self.current_coalitions[self.current_agent]):
-                break
-        '''
         #COALITIONS
         # Last coalition might be repeated, but that's ok, better than an infinite loop or obscure coding.
         coalition_id       = np.random.choice(len(self.valid_coalitions[self.current_agent])) #avoid proposing the current coalition
