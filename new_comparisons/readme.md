@@ -3,6 +3,7 @@ Additionally, regrding the scalability, we run the experiments with more agents.
 
 ## Comparison Against Other Methods
 Table 1 shows the comparison against current state of the art methods.
+The file "merge_split.png" presents a comparison of our method against the Merge-and-Split method. This method incurrs in energy cost (measured in micro Watts) due to the communication among agents. Our method avoids the communication cost since it is a decentralized algorithm where agents take decisions independently, thus the communication cost is zero. We present the communcation cost against the number of agents and against the distance between agents.
 
 ## Run With More Agents
 The Figure "boxplot_8agents.pdf" shows the results of the accuracy of the method with 8 agents. 
