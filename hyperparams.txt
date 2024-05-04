@@ -1,3 +1,5 @@
 lr_start,lr_end,lr_time = 2.5e-4,  2.5e-5, 50 * 1000000
 model={"fcnet_hiddens": [400, 400]}
-lr                = lr_start,lr_schedule = [[0, lr_start],[lr_time, lr_end]]
+lr  = lr_start,lr_schedule = [[0, lr_start],[lr_time, lr_end]]
+DF = 0.5
+Exploration: 0.03
