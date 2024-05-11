@@ -8,7 +8,8 @@
     2. The environment offers a coalition to the agent
     3. The agent accepts or rejects the coalition
     4. Environment calculates delta = V(S U {i}) - V(S) and assigns it as reward to the agent
-    if accept: reward = delta, if reject, reward = -delta
+    if accept correct coalition: reward = 1, if reject correct coalition, reward = -1
+    accepts the incorrect coalition: reward = -1, rejects the incorrect coalition: reward = 1.
     5. Environment updates the coalition structure (state) of the agent
     6. Environment selects the next agent in round-robin fashion
     etc
@@ -93,27 +94,6 @@ class Env(MultiAgentEnv):
             'distances': gym.spaces.Box(low=0, high=10, shape=(2, self.num_agents), dtype=np.float32) #distance vectors
         })
 
-
-    # RLLIB Methods to avoid the empty action space!
-    def observation_space_sample(self, agent_ids: list = None) -> MultiAgentDict:
-        if agent_ids is None:
-            agent_ids = self._agent_ids
-        return {id: self.observation_space.sample() for id in agent_ids} # Observation space is the same for all agents
-
-    def action_space_sample(self, agent_ids: list = None) -> MultiAgentDict:
-        if agent_ids is None:
-           agent_ids = self._agent_ids
-        return {id: self.action_space.sample() for id in agent_ids} #Action space is a dict
-
-    def action_space_contains(self, x: MultiAgentDict) -> bool:
-        if not isinstance(x, dict):
-           return False
-        return all(self.action_space.contains(val) for id, val in x.items()) #Action space is a dict
-
-    def observation_space_contains(self, x: MultiAgentDict) -> bool:
-        if not isinstance(x, dict):
-           return False
-        return all(self.observation_space.contains(val) for id, val in x.items()) # Observation space is the same for all agents
 
     def seed(self, seed=None):
         '''returns a seed for the env'''
@@ -228,15 +208,15 @@ class Env(MultiAgentEnv):
         # Assign Reward depending on action
         if delta_value <0: # if proposed coalition has less value (or more cost) - stay in old
             if action ==1:
-               self.reward_dict[self.current_agent] = delta_value
+               self.reward_dict[self.current_agent] = 1
             else: #if we stay where we are - repeat the reward from the current state
-                self.reward_dict[self.current_agent] = -delta_value
+                self.reward_dict[self.current_agent] = -1
                 # if it is the first time on this state, and it gets rejected, dict is empty and reward = 0. This is buggy.
         else: #delta new coalition >0: new coal has more value (or less cost) --> accept moving to new coalition
             if action ==1:
-               self.reward_dict[self.current_agent] = delta_value 
+               self.reward_dict[self.current_agent] = 1
             else: #if we stay where we are - repeat the reward from the current state
-                self.reward_dict[self.current_agent] = -delta_value
+                self.reward_dict[self.current_agent] = -1
                 # if it is the first time on this state, and it gets rejected, dict is empty and reward = 0. This is buggy.
 
 
@@ -246,7 +226,6 @@ class Env(MultiAgentEnv):
         '''If coalition accepted - Update agent's current coalition (i.e. state)'''
         if action == 1:
            self.current_coalitions[self.current_agent] = self.new_coalition  # Update the current coalition for this agent
-           #print('Current coalition - acting agent:', self.current_coalitions[self.current_agent])
 
 
     def _select_playing_agent(self):
@@ -314,9 +293,6 @@ class Env(MultiAgentEnv):
         action = action_dict[self.current_agent]         # action is a dict
 
         self._calculate_reward(action)                   # reward needs to be calculated before updating the coalition
-
-        # TO TEST ALL COALITIONS PRESENT
-        #print({'current agent': self.current_agent,'action':action, 'Reward': self.reward_dict[self.current_agent]})
 
         self._update_coalitions(action) # If the agent accepts the proposal - Update the coalition agent is in. Else pass
 
